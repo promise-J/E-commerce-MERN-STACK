@@ -3,22 +3,22 @@ const Product = require('../models/Product')
 
 
 const productCtrl = {
-    getProducts: async(req, res)=> {
+    getProducts: async (req, res) => {
         try {
-            let queryObj = {...req.query}
+            let queryObj = { ...req.query }
             // console.log(queryObj)
             const excludedFields = ['sort', 'limit', 'page']
-            excludedFields.forEach(f=>{
-                delete(queryObj[f])
+            excludedFields.forEach(f => {
+                delete (queryObj[f])
             })
 
             let queryStr = JSON.stringify(queryObj)
             queryStr = queryStr.replace(/\b(regex|lte|gte|lt|gt)\b/g, match => `$${match}`)
             // console.log(queryStr)
             let sortBy;
-            if(req.query.sort){
-              sortBy = req.query.sort.split(',').join(' ')
-            }else{
+            if (req.query.sort) {
+                sortBy = req.query.sort.split(',').join(' ')
+            } else {
                 sortBy = '-createdAt'
             }
             const limit = req.query.limit || 20
@@ -27,39 +27,45 @@ const productCtrl = {
 
 
             const products = await Product.find(JSON.parse(queryStr)).sort(sortBy).skip(skip).limit(limit)
-            res.json({status: 'Available',length: products.length, products})
+            res.json({ status: 'Available', length: products.length, products })
         } catch (error) {
-            return res.status(500).json({msg: error.message})
+            return res.status(500).json({ msg: error.message })
         }
     },
-    getProduct: async(req, res)=>{
+    getProduct: async (req, res) => {
         try {
             const product = await Product.findById(req.params.id)
-            res.status(200).json({msg: product})
-            
+            res.status(200).json({ msg: product })
+
         } catch (error) {
-            res.status(500).json({msg: error.message})
+            res.status(500).json({ msg: error.message })
         }
     }
     ,
-    createProduct: async(req, res)=> {
-        const {images, product_Id, description, title, content, price, category} = req.body
-        if(!images) return res.status(400).json({msg: 'Image must be selected'})
-        const existProduct = await Product.findOne({product_Id})
-        if(existProduct) return res.status(400).json({msg: 'Product already exists'})
-        const newProduct = new Product({
-            images, product_Id, description, content, title, price, category
-        })
-        await newProduct.save()
-        res.status(200).json(newProduct)
-    },
-    updateProduct: async(req, res)=> {
-        const {id} = req.params
-        await Product.findOneAndUpdate(req.params.id, req.body, {new: true})
+    createProduct: async (req, res) => {
+        try {
 
-        res.json({msg: 'Product updated successfully'})
+
+            const { images, product_id, description, title, content, price, category } = req.body
+            if (!images) return res.status(400).json({ msg: 'Image must be selected' })
+            const existProduct = await Product.findOne({ product_id })
+            if (existProduct) return res.status(400).json({ msg: 'Product already exists' })
+            const newProduct = new Product({
+                images, product_id, description, content, title, price, category
+            })
+            await newProduct.save()
+            res.status(200).json({msg: 'Created a product.'})
+        } catch (error) {
+            return res.status(500).json({msg: error.message, error: ' nonsense'})
+        }
     },
-    deleteProduct: async(req, res)=> {
+    updateProduct: async (req, res) => {
+        const { id } = req.params
+        await Product.findOneAndUpdate(req.params.id, req.body, { new: true })
+
+        res.json({ msg: 'Product updated successfully' })
+    },
+    deleteProduct: async (req, res) => {
         await Product.findOneAndDelete(req.params.id)
         res.send('Product deleted successfully...')
     }

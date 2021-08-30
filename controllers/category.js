@@ -1,7 +1,7 @@
 const Category = require('../models/Category')
 
 const cartCtrl = {
-    createCartegory: async(req, res)=>{
+    createCategory: async(req, res)=>{
         try {
             
             const {name} = req.body
@@ -17,7 +17,7 @@ const cartCtrl = {
     getCategory: async(req, res)=> {
         try {
             const all = await Category.find()
-            res.status(200).json({msg: all})
+            res.status(200).json(all)
         } catch (error) {
             res.status(500).json({msg: error.message})
         }

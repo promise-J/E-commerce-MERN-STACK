@@ -18,7 +18,7 @@ const paymentSchema = new mongoose.Schema({
       required: true
   },
   address: {
-      type: String,
+      type: Object,
       required: true
   },
   cart: {
@@ -27,7 +27,7 @@ const paymentSchema = new mongoose.Schema({
   },
   status: {
       type: Boolean,
-      required: false
+      default: false
   },
 }, {timestamps: true})
 

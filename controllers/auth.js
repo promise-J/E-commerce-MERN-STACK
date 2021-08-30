@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken")
 const User = require("../models/User")
 const bcrypt = require('bcrypt')
 const sendMail = require('../utils/sendEmail')
+const Payment = require('../models/paymentModel')
 // const { google } = require('googleapis')
 // const { OAuth2 } = google.auth
 
@@ -72,7 +73,6 @@ const userCtrl = {
        if(!user) return res.status(400).json({msg: "Email is not registered. Register!"})
        const isMatch = await bcrypt.compare(password, user.password)
        if(!isMatch)  return res.status(400).json({msg: "Password is incorrect"})
-      //  const token = getAccessToken({id: user._id})
        const rf_token = getRefreshToken({id: user._id})
        res.cookie('refreshtoken', rf_token, {
          httpOnly: true,
@@ -89,19 +89,12 @@ const userCtrl = {
        try {
          console.log(req.cookie)
           const rf_token = req.cookies.refreshtoken
-          if(!rf_token) return res.status(400).json({msg: 'Please login'})
+          if(!rf_token) return res.status(400).json({msg: 'Please login to get a token'})
           jwt.verify(rf_token, process.env.REFRESH_TOKEN, (err, user)=> {
-            if(err) res.status(400).json({msg: 'Please login'})
+            if(err) res.status(400).json({msg: 'token verification failed'})
             const accessToken = getAccessToken({id: user.id})
             res.json({accessToken})
           })
-          // if(!rf_token) return res.status(400).json({msg: "Login now"})
-          //  jwt.verify(rf_token, process.env.REFRESH_SECRET, (err, user)=> {
-          //    if(err) return res.status(400).json({msg: "Login now"})
-          //    console.log(user)
-          //    const accessToken = getAccessToken({id: user.id})
-          //    res.json({accessToken})
-          //  })
        } catch (error) {
          return res.status(500).json({msg: error.message})
        }
@@ -195,13 +188,10 @@ const userCtrl = {
       return res.status(500).json({msg: error.message})
     }
  },
-   updateRole: async (req, res)=> {
+   history: async (req, res)=> {
      try {
-       const {role} = req.body
-       await User.findOneAndUpdate({_id: req.params.id}, {
-         role
-       })
-       res.json({msg: 'Updated role successfully'})
+       const history = await Payment.find({user_id: req.user.id})
+       res.json(history)
      } catch (error) {
        return res.status(500).json({msg: error.message})
      }
@@ -258,7 +248,7 @@ const userCtrl = {
 }
  
 const getAccessToken = (payload)=> {
-  return jwt.sign(payload, process.env.ACCESS_TOKEN, {expiresIn: '15m'})
+  return jwt.sign(payload, process.env.ACCESS_TOKEN, {expiresIn: '11m'})
 }
 const getRefreshToken = (payload)=> {
   return jwt.sign(payload, process.env.REFRESH_TOKEN, {expiresIn: '7d'})
