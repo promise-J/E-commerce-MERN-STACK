@@ -40,12 +40,9 @@ const productCtrl = {
         } catch (error) {
             res.status(500).json({ msg: error.message })
         }
-    }
-    ,
+    },
     createProduct: async (req, res) => {
         try {
-
-
             const { images, product_id, description, title, content, price, category } = req.body
             if (!images) return res.status(400).json({ msg: 'Image must be selected' })
             const existProduct = await Product.findOne({ product_id })
@@ -66,8 +63,12 @@ const productCtrl = {
         res.json({ msg: 'Product updated successfully' })
     },
     deleteProduct: async (req, res) => {
-        await Product.findOneAndDelete(req.params.id)
-        res.send('Product deleted successfully...')
+        try {      
+            await Product.findOneAndDelete(req.params.id)
+            res.send('Product deleted successfully...')
+        } catch (error) {
+            return res.status(500).json({msg: error.message})
+        }
     }
 }
 
